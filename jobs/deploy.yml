@@ -46,7 +46,14 @@ jobs:
         ##########################################
         ## login to Office 365 CLI
         ##########################################
-        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType password --userName ${{ parameters.o365_user_login }} --password ${{ parameters.o365_user_password }}
+
+        - task: DownloadSecureFile@1
+          name: DevOpsPipelineUser
+          displayName: 'Download PFX certificate'
+          inputs:
+            secureFile: 'DevOpsPipelineUser.pfx'
+
+        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint E2E22A36E7646CDBCDF5C9FDDC8F11B1D30B908A
           displayName: Login to Office365
         ##########################################
         ## download previously built *.sppkg
