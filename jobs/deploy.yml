@@ -53,7 +53,7 @@ jobs:
           inputs:
             secureFile: 'DevOpsPipelineUser.pfx'
 
-        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint E2E22A36E7646CDBCDF5C9FDDC8F11B1D30B908A
+        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint 2F8E27B7454B510A417345C1CE90DF86A35BDF3B --password Womble
           displayName: Login to Office365
         ##########################################
         ## download previously built *.sppkg
