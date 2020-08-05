@@ -11,6 +11,11 @@ parameters:
   # o365 user credentials
   o365_user_login: ''
   o365_user_password: ''
+
+  o365_auth_type: 'password'
+  o365_certificate_thumbprint: ''
+  o365_certificate_password: ''
+
   # app catalog url
   o365_app_catalog_site_url: ''
   # app catalog scope (tenant|sitecollection)
@@ -20,6 +25,9 @@ parameters:
   o365cli_spoAppDeploy_extra_arguments: ''
   # node version
   node_version: '10.x'
+
+variables:
+    O365_AUTH_TYPE: ${{ parameters.o365_auth_type }}
 
 jobs:
 - deployment: ${{ parameters.job_name }}
@@ -53,8 +61,13 @@ jobs:
           inputs:
             secureFile: 'DevOpsPipelineUser.pfx'
 
-        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint 2F8E27B7454B510A417345C1CE90DF86A35BDF3B --password Womble
-          displayName: Login to Office365
+        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType password --userName ${{ parameters.o365_user_login }} --password ${{ parameters.o365_user_password }}
+          condition: and(succeeded(), eq('$(O365_AUTH_TYPE)', 'password'))
+          displayName: User Login to Office365
+
+        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint ${{ parameters.o365_certificate_thumbprint }} --password ${{ parameters.o365_certificate_password }}
+          condition: and(succeeded(), eq('$(O365_AUTH_TYPE)', 'certificate'))
+          displayName: App Login to Office365
         ##########################################
         ## download previously built *.sppkg
         ##########################################
