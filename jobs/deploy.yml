@@ -26,14 +26,13 @@ parameters:
   # node version
   node_version: '10.x'
 
-variables:
-    O365_AUTH_TYPE: ${{ parameters.o365_auth_type }}
-
 jobs:
 - deployment: ${{ parameters.job_name }}
   displayName: ${{ parameters.display_name }}
   pool: ${{ parameters.pool }}
   environment: ${{ parameters.target_environment }}
+  variables:
+    O365_AUTH_TYPE: ${{ parameters.o365_auth_type }}
   strategy:
     runOnce:
       deploy:
