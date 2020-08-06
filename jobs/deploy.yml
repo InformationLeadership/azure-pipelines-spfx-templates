@@ -13,6 +13,7 @@ parameters:
   o365_user_password: ''
 
   o365_auth_type: 'password'
+  o365_certificate_filename: ''
   o365_certificate_thumbprint: ''
   o365_certificate_password: ''
 
@@ -64,7 +65,10 @@ jobs:
           condition: and(succeeded(), eq('${{ variables.O365_AUTH_TYPE }}', 'password'))
           displayName: User Login to Office365
 
-        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint ${{ parameters.o365_certificate_thumbprint }} --password ${{ parameters.o365_certificate_password }}
+        - script: |
+            echo "##vso[task.setvariable variable=OFFICE365CLI_AADAPPID;]3d911862-09cd-4d22-809f-3de8bdeaa5dc"
+            echo "##vso[task.setvariable variable=OFFICE365CLI_TENANT;]e9ecf68e-203e-420d-a230-63e003b4167b"
+            o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint ${{ parameters.o365_certificate_thumbprint }} --password ${{ parameters.o365_certificate_password }}
           condition: and(succeeded(), eq('${{ variables.O365_AUTH_TYPE }}', 'certificate'))
           displayName: App Login to Office365
         ##########################################
