@@ -65,7 +65,7 @@ jobs:
           displayName: User Login to Office365
 
         - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint ${{ parameters.o365_certificate_thumbprint }} --password ${{ parameters.o365_certificate_password }}
-          condition: and(succeeded(), eq($(O365_AUTH_TYPE), 'certificate'))
+          condition: and(succeeded(), eq('${{ variables.O365_AUTH_TYPE }}', 'certificate'))
           displayName: App Login to Office365
         ##########################################
         ## download previously built *.sppkg
