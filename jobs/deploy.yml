@@ -51,26 +51,7 @@ jobs:
         ##########################################
         - script: sudo npm install --global @pnp/office365-cli
           displayName: Install Office365 CLI
-        ##########################################
-        ## login to Office 365 CLI
-        ##########################################
 
-        - task: DownloadSecureFile@1
-          name: DevOpsPipelineUser
-          displayName: 'Download PFX certificate'
-          inputs:
-            secureFile: 'DevOpsPipelineUser.pfx'
-
-        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType password --userName ${{ parameters.o365_user_login }} --password ${{ parameters.o365_user_password }}
-          condition: and(succeeded(), eq('${{ variables.O365_AUTH_TYPE }}', 'password'))
-          displayName: User Login to Office365
-
-        - script: |
-            export OFFICE365CLI_AADAPPID="3d911862-09cd-4d22-809f-3de8bdeaa5dc"
-            export OFFICE365CLI_TENANT="e9ecf68e-203e-420d-a230-63e003b4167b"
-            o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(DevOpsPipelineUser.secureFilePath) --thumbprint ${{ parameters.o365_certificate_thumbprint }} --password ${{ parameters.o365_certificate_password }}
-          condition: and(succeeded(), eq('${{ variables.O365_AUTH_TYPE }}', 'certificate'))
-          displayName: App Login to Office365
         ##########################################
         ## download previously built *.sppkg
         ##########################################
@@ -87,12 +68,34 @@ jobs:
             echo "##vso[task.setvariable variable=SpPkgFileName;isOutput=true]${CMD_GET_SPPKG_NAME}"
           displayName: Get generated *.sppkg filename
           name: GetSharePointPackage
+
+        ##########################################
+        ## login to Office 365 CLI
+        ##########################################
+
+        - task: DownloadSecureFile@1
+          name: O365PfxCertificate
+          displayName: 'Download PFX certificate'
+          inputs:
+            secureFile: '${{ parameters.o365_certificate_filename }}'
+
+        - script: o365 login ${{ parameters.o365_app_catalog_site_url }} --authType password --userName ${{ parameters.o365_user_login }} --password ${{ parameters.o365_user_password }}
+          condition: and(succeeded(), eq('${{ variables.O365_AUTH_TYPE }}', 'password'))
+          displayName: User Login to Office365
+
+        - script: |
+            export OFFICE365CLI_AADAPPID="${{ parameters.o365cli_aad_appid }}"
+            export OFFICE365CLI_TENANT="${{ parameters.o365cli_tenantid }}"
+            o365 login ${{ parameters.o365_app_catalog_site_url }} --authType certificate --certificateFile $(O365PfxCertificate.secureFilePath) --thumbprint ${{ parameters.o365_certificate_thumbprint }} --password ${{ parameters.o365_certificate_password }}
+          condition: and(succeeded(), eq('${{ variables.O365_AUTH_TYPE }}', 'certificate'))
+          displayName: App Login to Office365
+
         ##########################################
         ## upload *.sppkg to the target app catalog
         ##########################################
         - script: |
-            export OFFICE365CLI_AADAPPID="3d911862-09cd-4d22-809f-3de8bdeaa5dc"
-            export OFFICE365CLI_TENANT="e9ecf68e-203e-420d-a230-63e003b4167b"
+            export OFFICE365CLI_AADAPPID="${{ parameters.o365cli_aad_appid }}"
+            export OFFICE365CLI_TENANT="${{ parameters.o365cli_tenantid }}"
             o365 spo app add --filePath "$(Pipeline.Workspace)/spfx-package/$(GetSharePointPackage.SpPkgFileName)" --appCatalogUrl ${{ parameters.o365_app_catalog_site_url }} --scope ${{ parameters.o365cli_app_catalog_scope }} --overwrite ${{ parameters.o365cli_spoAppAdd_extra_arguments }}
           displayName: Upload SharePoint package to Site Collection App Catalog
         ##########################################
